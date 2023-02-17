@@ -22,17 +22,15 @@ func Register(v *validator.Validate) {
 		return name
 	})
 
-	v.RegisterValidation("enum", GetValidateEnum(v))
+	v.RegisterValidation("enum", ValidateEnum)
 	v.RegisterValidation("required_if_element", GetValidateRequiredIfElement(v))
 }
 
-func GetValidateEnum(v *validator.Validate) validator.Func {
-	return func(fl validator.FieldLevel) bool {
-		if enum, ok := fl.Field().Interface().(EnumValid); ok {
-			return enum.Valid()
-		}
-		return false
+func ValidateEnum(fl validator.FieldLevel) bool {
+	if enum, ok := fl.Field().Interface().(EnumValid); ok {
+		return enum.Valid()
 	}
+	return false
 }
 
 func GetValidateRequiredIfElement(v *validator.Validate) validator.Func {
@@ -47,8 +45,8 @@ func GetValidateRequiredIfElement(v *validator.Validate) validator.Func {
 	}
 }
 
-func requireCheckFieldElem(val reflect.Value, name string, value string) bool {
-	field := val.FieldByName(name)
+func requireCheckFieldElem(parent reflect.Value, name string, value string) bool {
+	field := parent.FieldByName(name)
 
 	required := false
 	switch field.Kind() {

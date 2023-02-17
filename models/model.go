@@ -9,7 +9,7 @@ const (
 	Other Color = "other"
 )
 
-var ColorValues []Color = []Color{
+var ColorValues = []Color{
 	Red, Green, Blue, Other,
 }
 

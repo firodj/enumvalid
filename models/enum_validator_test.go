@@ -8,19 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func CreatePayload(t *testing.T, jsonStr string) *Payload {
-	var payload Payload
-	err := json.Unmarshal([]byte(jsonStr), &payload)
+func CreatePayload[T any](jsonStr string) *T {
+	var payload T
 
-	assert.NoError(t, err)
-	return &payload
-}
+	if err := json.Unmarshal([]byte(jsonStr), &payload); err != nil {
+		panic(err)
+	}
 
-func CreateMulPayload(t *testing.T, jsonStr string) *MulPayload {
-	var payload MulPayload
-	err := json.Unmarshal([]byte(jsonStr), &payload)
-
-	assert.NoError(t, err)
 	return &payload
 }
 
@@ -34,7 +28,7 @@ func CreateValidator() *validator.Validate {
 func TestEnumValid(t *testing.T) {
 	jsonStr := `{"color":"green"}`
 
-	payload := CreatePayload(t, jsonStr)
+	payload := CreatePayload[Payload](jsonStr)
 
 	validate := CreateValidator()
 
@@ -45,7 +39,7 @@ func TestEnumValid(t *testing.T) {
 func TestEnumInvalid(t *testing.T) {
 	jsonStr := `{"color":"yellow"}`
 
-	payload := CreatePayload(t, jsonStr)
+	payload := CreatePayload[Payload](jsonStr)
 
 	validate := CreateValidator()
 
@@ -62,7 +56,7 @@ func TestEnumInvalid(t *testing.T) {
 func TestEnumOtherMissing(t *testing.T) {
 	jsonStr := `{"color":"other","other":""}`
 
-	payload := CreatePayload(t, jsonStr)
+	payload := CreatePayload[Payload](jsonStr)
 
 	validate := CreateValidator()
 
@@ -79,7 +73,7 @@ func TestEnumOtherMissing(t *testing.T) {
 func TestEnumOtherExist(t *testing.T) {
 	jsonStr := `{"color":"other","other":"yellow"}`
 
-	payload := CreatePayload(t, jsonStr)
+	payload := CreatePayload[Payload](jsonStr)
 
 	validate := CreateValidator()
 
@@ -90,7 +84,7 @@ func TestEnumOtherExist(t *testing.T) {
 func TestMulEnumValidMissing(t *testing.T) {
 	jsonStr := `{"colors":["green","red","other"],"other":""}`
 
-	payload := CreateMulPayload(t, jsonStr)
+	payload := CreatePayload[MulPayload](jsonStr)
 
 	validate := CreateValidator()
 
@@ -108,7 +102,7 @@ func TestMulEnumValidMissing(t *testing.T) {
 func TestMulEnumValidExist(t *testing.T) {
 	jsonStr := `{"colors":["green","red","other"],"other":"yellow"}`
 
-	payload := CreateMulPayload(t, jsonStr)
+	payload := CreatePayload[MulPayload](jsonStr)
 
 	validate := CreateValidator()
 
