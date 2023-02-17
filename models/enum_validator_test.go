@@ -54,7 +54,7 @@ func TestEnumInvalid(t *testing.T) {
 		errs := err.(validator.ValidationErrors)
 
 		assert.Len(t, errs, 1)
-		assert.Equal(t, "Color", errs[0].Field())
+		assert.Equal(t, "color", errs[0].Field())
 		assert.Equal(t, "enum", errs[0].Tag())
 	}
 }
@@ -71,7 +71,7 @@ func TestEnumOtherMissing(t *testing.T) {
 		errs := err.(validator.ValidationErrors)
 
 		assert.Len(t, errs, 1)
-		assert.Equal(t, "Other", errs[0].Field())
+		assert.Equal(t, "other", errs[0].Field())
 		assert.Equal(t, "required_if", errs[0].Tag())
 	}
 }
@@ -100,7 +100,7 @@ func TestMulEnumValidMissing(t *testing.T) {
 		errs := err.(validator.ValidationErrors)
 
 		assert.Len(t, errs, 1)
-		assert.Equal(t, "Other", errs[0].Field())
+		assert.Equal(t, "other", errs[0].Field())
 		assert.Equal(t, "required_if_element", errs[0].Tag())
 	}
 }

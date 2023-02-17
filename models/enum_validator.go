@@ -13,50 +13,58 @@ type EnumValid interface {
 }
 
 func Register(v *validator.Validate) {
-	v.RegisterValidation("enum", ValidateEnum)
-	v.RegisterValidation("required_if_element", ValidateRequiredIfElement)
+	// register function to get tag name from json tags.
+	v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
+	v.RegisterValidation("enum", GetValidateEnum(v))
+	v.RegisterValidation("required_if_element", GetValidateRequiredIfElement(v))
 }
 
-func ValidateEnum(fl validator.FieldLevel) bool {
-	if enum, ok := fl.Field().Interface().(EnumValid); ok {
-		return enum.Valid()
+func GetValidateEnum(v *validator.Validate) validator.Func {
+	return func(fl validator.FieldLevel) bool {
+		if enum, ok := fl.Field().Interface().(EnumValid); ok {
+			return enum.Valid()
+		}
+		return false
 	}
-	return false
 }
 
-func ValidateRequiredIfElement(fl validator.FieldLevel) bool {
-	params := strings.SplitN(fl.Param(), " ", 2)
+func GetValidateRequiredIfElement(v *validator.Validate) validator.Func {
+	return func(fl validator.FieldLevel) bool {
+		params := strings.SplitN(fl.Param(), " ", 2)
 
-	if !requireCheckFieldElem(fl.Parent(), params[0], params[1]) {
-		return true
+		if !requireCheckFieldElem(fl.Parent(), params[0], params[1]) {
+			return true
+		}
+
+		return validateRequired(v, fl.Field().Interface())
 	}
-
-	return hasValue(fl)
 }
 
 func requireCheckFieldElem(val reflect.Value, name string, value string) bool {
 	field := val.FieldByName(name)
 
 	required := false
-	if field.Kind() == reflect.Slice {
+	switch field.Kind() {
+	case reflect.Slice:
 		for i := 0; i < field.Len(); i++ {
 			if field.Index(i).String() == value {
 				required = true
 				break
 			}
 		}
-	} else {
-		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+		return required
 	}
-	return required
+
+	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-func hasValue(fl validator.FieldLevel) bool {
-	field := fl.Field()
-	switch field.Kind() {
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
-		return !field.IsNil()
-	default:
-		return field.IsValid() && field.Interface() != reflect.Zero(field.Type()).Interface()
-	}
+func validateRequired(v *validator.Validate, val interface{}) bool {
+	return v.Var(val, "required") == nil
 }
